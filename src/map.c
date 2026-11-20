@@ -8,6 +8,12 @@ const int MIN_LEAF_H   = 10;   // a partition shorter than this won't split hori
 const int ROOM_PADDING = 2;   // empty border kept inside each partition
 const int ROOM_MIN     = 4;   // smallest room edge length
 
+// const int MAX_DEPTH    = 1;   // up to 2^4 = 16 leaf partitions
+// const int MIN_LEAF_W   = 4;  // a partition narrower than this won't split vertically
+// const int MIN_LEAF_H   = 2;   // a partition shorter than this won't split horizontally
+// const int ROOM_PADDING = 2;   // empty border kept inside each partition
+// const int ROOM_MIN     = 2;   // smallest room edge length
+
 
 static void split(BSPNode *node, int depth, Map *map){
     if(depth >= MAX_DEPTH) return;
@@ -197,6 +203,7 @@ void map_init(Map *self)
     }
 
     self->rooms_count = 0;
+    self->can_respawn_point_count = 0;
 
     BSPNode root;
     root.x = 0;
@@ -218,6 +225,110 @@ void map_init(Map *self)
     connect_rooms(self,&root);
 }
 
+void map_init_cave(Map *self)
+{
+    // for (int y = 0; y < MAP_HEIGHT; ++y) {
+    //     for (int x = 0; x < MAP_WIDTH; ++x) {
+    //         self->tiles[y][x] = (Tile){0};
+    //         self->dist[y][x] = UNREACHABLE;
+    //     }
+    // }
+
+    // self->rooms_count = 0;
+
+    // set random noise
+    for (int y = 0; y < MAP_HEIGHT; y++) {
+        for (int x = 0; x < MAP_WIDTH; x++) {
+
+            bool border = (x == 0 || y == 0 || (x == MAP_WIDTH-1) || (y == MAP_HEIGHT -1));
+
+            self->tiles[y][x].type = (border || (GetRandomValue(1,100) < 45))?TILE_TYPE_WALL : TILE_TYPE_FLOOR;
+
+            // self->tiles[y][y].type = TILE_TYPE_FLOOR;
+        }
+    }
+
+    // smooth with the 406 rule, fise passes
+    for (int iter = 0; iter < 2; ++iter)
+    {
+        TileType next[MAP_HEIGHT][MAP_WIDTH];
+        for (int y = 0; y < MAP_HEIGHT; ++y){
+            for (int x = 0; x < MAP_WIDTH; ++x)
+            {
+                bool border = (x == 0 || y == 0 || x == MAP_WIDTH -1 || y == MAP_HEIGHT -1);
+                if (border) { next[y][x] = TILE_TYPE_WALL; continue; }
+                int walls = 0;
+                for (int dy = -1; dy <= 1; ++dy)
+                    for (int dx = -1; dx <= 1; ++dx)
+                        if (!(dx == 0 && dy == 0) && self->tiles[y+dy][x+dx].type == TILE_TYPE_WALL)
+                            ++walls;
+                next[y][x] = (walls >= 5) ? TILE_TYPE_WALL : TILE_TYPE_FLOOR;
+            }
+        }
+
+        for (int y = 0; y < MAP_HEIGHT; ++y)
+            for (int x = 0; x < MAP_WIDTH; ++x)
+                self->tiles[y][x].type = next[y][x];
+    }
+}
+
+void map_init_village(Map *self){
+    // set random noise
+    for (int y = 0; y < MAP_HEIGHT; y++) {
+        for (int x = 0; x < MAP_WIDTH; x++) {
+
+            bool border = (x == 0 || y == 0 || (x == MAP_WIDTH-1) || (y == MAP_HEIGHT -1));
+
+            // self->tiles[y][x].type = (border || (GetRandomValue(1,100) < 45))?TILE_TYPE_WALL : TILE_TYPE_FLOOR;
+
+            self->tiles[y][x].type = (border)?TILE_TYPE_WALL : TILE_TYPE_FLOOR;
+            self->tiles[y][x].visual_decoration_index = -1;
+
+            if(border && y != MAP_HEIGHT-1){
+                self->tiles[y][x].visual_decoration_index = 261;
+            }
+
+            self->tiles[y][x].visual_index = 88;
+            if(y == MAP_HEIGHT-1){
+                self->tiles[y][x].visual_index = 95;
+            }
+        }
+    }
+
+    // draw road
+    self->tiles[5][3].visual_index = 256+8;
+    for (int i = 3; i < 18; ++i) {
+        self->tiles[6][i].visual_index = 256+8;
+    }
+    self->tiles[5][17].visual_index = 256+8;
+
+    // draw house
+    self->tiles[4][15].visual_index = 188;
+    self->tiles[4][16].visual_index = 188;
+    self->tiles[4][17].visual_index = 273;
+    self->tiles[4][18].visual_index = 188; // front
+    self->tiles[3][15].visual_index = 275; // roof
+    self->tiles[3][16].visual_index = 275;
+    self->tiles[3][17].visual_index = 275;
+    self->tiles[3][18].visual_index = 275;
+    self->tiles[2][15].visual_index = 277;
+    self->tiles[2][16].visual_index = 277;
+    self->tiles[2][17].visual_index = 277;
+    self->tiles[2][18].visual_index = 277;
+
+    self->tiles[4][15].type = TILE_TYPE_STATIC;
+    self->tiles[4][16].type = TILE_TYPE_STATIC;
+    self->tiles[4][17].type = TILE_TYPE_FLOOR;
+    self->tiles[4][18].type = TILE_TYPE_STATIC;
+    self->tiles[3][15].type = TILE_TYPE_STATIC;
+    self->tiles[3][16].type = TILE_TYPE_STATIC;
+    self->tiles[3][17].type = TILE_TYPE_STATIC;
+    self->tiles[3][18].type = TILE_TYPE_STATIC;
+    self->tiles[2][15].type = TILE_TYPE_WALL;
+    self->tiles[2][16].type = TILE_TYPE_WALL;
+    self->tiles[2][17].type = TILE_TYPE_WALL;
+    self->tiles[2][18].type = TILE_TYPE_WALL;
+}
 
 bool map_is_visible_edge(const Map *self, int x, int y){
     // has not visible neigbour
@@ -296,4 +407,109 @@ void map_print(Map *self)
         }
         printf("\n");
     }
+}
+
+bool map_is_floor(const Map *self, int x, int y)
+{
+    return (self->tiles[y][x].type == TILE_TYPE_FLOOR);
+}
+
+Vector2i map_get_first_respawnable_point(Map *self){
+    Vector2i point = {-1,-1};
+
+    //set up start point
+    int walk_x = 0;
+    bool all_floors = false;
+    for (int walk_y = 0; walk_y < MAP_HEIGHT; ++walk_y){
+        // then we check neighbours if all of them are floor we found our point
+
+        // TraceLog(LOG_INFO,"walk:%i %i",walk_x, walk_y);
+
+        for (int i = 0; i < 8; ++i) {
+            int nx = walk_x + neighbours_8[i].x;
+            int ny = walk_y + neighbours_8[i].y;
+
+            //check where I'm at
+            if(!map_is_inside(self,nx,ny)) continue;
+
+            // if walls?
+            if(self->tiles[ny][nx].type == TILE_TYPE_WALL){
+                all_floors = false;
+            };
+
+            if(self->tiles[ny][nx].type == TILE_TYPE_FLOOR){
+                all_floors = true;
+                // TraceLog(LOG_INFO,"floor:%i:%i %i",i,start_x, start_y);
+            };
+        }
+
+        if(all_floors){
+            point.x = walk_x;
+            point.y = walk_y;
+            break;
+        }
+
+        walk_x++;
+    }
+
+    return point;
+}
+
+void map_update_respawn_points(Map *self){
+    bool visited[MAP_HEIGHT][MAP_WIDTH] = {0};
+
+    Vector2i point = map_get_first_respawnable_point(self);
+
+    Vector2i queue[MAP_WIDTH * MAP_HEIGHT];
+    int counter = 0;
+    // get all the floor tiles
+    for (int y = 0; y < MAP_HEIGHT; ++y){
+        for (int x = 0; x < MAP_WIDTH; ++x){
+            if(self->tiles[y][x].type == TILE_TYPE_FLOOR){
+                queue[counter++] = (Vector2i){0,0};
+            }
+        }
+    }
+
+    int head = 0;
+    int tail = 0;
+
+    queue[tail++] = (Vector2i){point.x, point.y};
+    self->can_respawn_point[tail++] = (Vector2i){point.x, point.y};
+    visited[point.y][point.x] = true;
+
+    self->can_respawn_point_count = 0;
+
+    // BFS search
+    while(head < tail){
+        Vector2i current = queue[head++];
+
+        for (int i = 0; i < 4; ++i) {
+            int nx = current.x + directions[i][0];
+            int ny = current.y + directions[i][1];
+
+            // inside the map?self->map.visited_count
+            if(!map_is_inside(self,nx,ny)) continue;
+
+            // if walls?
+            if(self->tiles[ny][nx].type == TILE_TYPE_WALL) continue;
+
+            // already visited
+            if(visited[ny][nx]) continue;
+
+            // self->map_navigation[MAP_NAVIGATION_COST][index_nn] =
+            // int current_cost = self->dist[current.y][current.x];
+            // self->dist[ny][nx] = current_cost+1;
+
+            queue[tail++] = (Vector2i){nx, ny};
+            visited[ny][nx] = true;
+            self->can_respawn_point[self->can_respawn_point_count++] = (Vector2i){nx, ny};
+
+        }
+    }
+}
+
+bool map_is_visible(const Map *self, int x, int y)
+{
+    return self->tiles[y][x].visible;
 }

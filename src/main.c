@@ -34,7 +34,6 @@ int main(void)
 
     SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
-
     // Map map;
 
     asset_manager_init(&shared_context()->asset_manager);
@@ -45,6 +44,7 @@ int main(void)
 
     GamePlay gameplay;
     gameplay_init(&gameplay);
+    gameplay.screen = SCREEN_MENU;
 
     // Main game loop
     while (!WindowShouldClose())        // Detect window close button or ESC key

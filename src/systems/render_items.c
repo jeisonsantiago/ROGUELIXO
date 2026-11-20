@@ -23,13 +23,13 @@ void render_items_system(GamePlay *gameplay){
     AssetManager *asset_manager = &shared_context()->asset_manager;
 
     // render_entity(&gameplay->player,asset_manager);
-    Dungeon *dungeon = &gameplay->dungeon;
+    Dungeon *dungeon = gameplay_current_dungeon(gameplay);
 
     for (int i = 0; i < dungeon->item_count; ++i) {
 
         Item *item = &dungeon->items[i];
 
-        if(gameplay->dungeon.map.tiles[item->y][item->x].visible){
+        if(dungeon->map.tiles[item->y][item->x].visible){
             render_item(&dungeon->items[i],asset_manager);
         }
     }

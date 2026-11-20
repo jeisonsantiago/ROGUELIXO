@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(BSP_Map LANGUAGES C)
+project(ROGUELIXO LANGUAGES C)
 
 # set production flags
 set(PRODUCTION_BUILD OFF CACHE BOOL "Make this a production build" FORCE)
@@ -8,6 +8,7 @@ set(PRODUCTION_BUILD OFF CACHE BOOL "Make this a production build" FORCE)
 include_directories(
     src
     src/systems
+    src/factories
 )
 
 add_executable("${CMAKE_PROJECT_NAME}" src/main.c
@@ -30,7 +31,17 @@ add_executable("${CMAKE_PROJECT_NAME}" src/main.c
     src/systems/camera_system.h src/systems/camera_system.c
     src/inventory.h src/inventory.c
     src/entity_status.h src/entity_status.c
-    src/trait.h src/trait.c)
+    src/trait.h src/trait.c
+    src/factories/factory_monster.h src/factories/factory_monster.c
+    src/factories/factory_item.h src/factories/factory_item.c
+    src/ranged_mode.h src/ranged_mode.c
+    src/systems/render_game_ui.h src/systems/render_game_ui.c
+    src/systems/queue_free.h src/systems/queue_free.c
+    src/screen.h src/screen.c
+    src/factories/factory_npc.h src/factories/factory_npc.c
+    src/npc.h src/npc.c
+    src/factories/factory_set_levels.h src/factories/factory_set_levels.c
+)
 
 if(PRODUCTION_BUILD)
         # setup the ASSETS_PATH macro to be in the root folder of your exe
@@ -66,3 +77,4 @@ endif()
 target_precompile_headers(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/pch.h)
 
 
+# Fourfold: Ashes of the Primordials

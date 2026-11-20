@@ -14,6 +14,76 @@ void render_dungeon(Dungeon *dungeon){
     Rectangle src_wall = asset_manager_get_texture_rect_by_index(dungeon->tile_index_wall,ta);
     Rectangle src_wall_out = asset_manager_get_texture_rect_by_index(3,ta);
     Rectangle src_wall_side = asset_manager_get_texture_rect_by_index(6,ta);
+    Rectangle src_stairs_down = asset_manager_get_texture_rect_by_index(12,ta);
+
+    if(dungeon->type == DUNGEON_TYPE_VILLAGE){
+
+        for (int x = 0; x < MAP_WIDTH; ++x) {
+            for (int y = 0; y < MAP_HEIGHT; ++y) {
+                Tile *tile = &dungeon->map.tiles[y][x];
+
+                Rectangle village_floor = asset_manager_get_texture_rect_by_index(tile->visual_index,ta);
+                Rectangle village_wall = asset_manager_get_texture_rect_by_index(tile->visual_index,ta);
+
+                Color color = tile->visible ? WHITE : BLACK;
+                if(tile->explored &&!tile->visible) color = ColorAlpha(GRAY,0.5f);
+
+                Rectangle dest = {
+                    x * TILE_SIZE,
+                    y * TILE_SIZE,
+                    TILE_SIZE,
+                    TILE_SIZE
+                };
+
+                switch (tile->type) {
+                case TILE_TYPE_FLOOR:{
+                    DrawTexturePro(
+                                ta->texture,
+                                village_floor,dest,(Vector2){0,0},0,color);
+                    break;
+                }
+                case TILE_TYPE_WALL:{
+                    DrawTexturePro(
+                                ta->texture,
+                                village_wall,dest,(Vector2){0,0},0,color);
+                    break;
+                }
+                case TILE_TYPE_STATIC:{
+                    DrawTexturePro(
+                                ta->texture,
+                                village_wall,dest,(Vector2){0,0},0,color);
+                    break;
+                }
+                default:
+                    break;
+                }
+
+                if(tile->visual_decoration_index != -1){
+                    Rectangle decoration = asset_manager_get_texture_rect_by_index(tile->visual_decoration_index,ta);
+                    DrawTexturePro(ta->texture,decoration,dest,(Vector2){0,0},0,color);
+                }
+            }
+        }
+
+        // stairs
+        if(dungeon->stairs_x != 0 && dungeon->stairs_y != 0){
+
+            Tile *tile = &dungeon->map.tiles[dungeon->stairs_y][dungeon->stairs_x];
+            Color color = tile->visible ? WHITE : BLACK;
+            if(tile->explored &&!tile->visible) color = ColorAlpha(GRAY,0.5f);
+
+            Rectangle dest = {
+                dungeon->stairs_x * TILE_SIZE,
+                dungeon->stairs_y * TILE_SIZE,
+                TILE_SIZE,
+                TILE_SIZE
+            };
+
+            DrawTexturePro(ta->texture,src_stairs_down,dest,(Vector2){0,0},0,color);
+        }
+
+        return;
+    }
 
     for (int x = 0; x < MAP_WIDTH; ++x) {
         for (int y = 0; y < MAP_HEIGHT; ++y) {
@@ -49,22 +119,39 @@ void render_dungeon(Dungeon *dungeon){
         }
     }
 
+    // jeison changes
+    // return;
+
+    // stairs
+    if(dungeon->stairs_x != 0 && dungeon->stairs_y != 0){
+
+        Tile *tile = &dungeon->map.tiles[dungeon->stairs_y][dungeon->stairs_x];
+        Color color = tile->visible ? WHITE : BLACK;
+        if(tile->explored &&!tile->visible) color = ColorAlpha(GRAY,0.5f);
+
+        Rectangle dest = {
+            dungeon->stairs_x * TILE_SIZE,
+            dungeon->stairs_y * TILE_SIZE,
+            TILE_SIZE,
+            TILE_SIZE
+        };
+
+            DrawTexturePro(
+                        ta->texture,
+                        src_stairs_down,dest,(Vector2){0,0},0,color);
+    }
+
     // check neighbours
     // x y
     int ng_4[NG_4][2] = {{0,-1},{1,0},{0,1},{-1,0}};
     int ng_8[NG_8][2] = {{0,-1},{1,0},{0,1},{-1,0},{-1,-1},{1,-1},{1,1},{-1,1}};
     int ng_config[NG_8] = {1,4,16,64,128,2,8,32};
 
-
-
-
-
     // return;
     for (int x = 0; x < MAP_WIDTH; ++x) {
         for (int y = 0; y < MAP_HEIGHT; ++y) {
 
             if(dungeon->map.tiles[y][x].type != TILE_TYPE_WALL) continue;
-
 
             Tile *tile = &dungeon->map.tiles[y][x];
 
@@ -74,6 +161,7 @@ void render_dungeon(Dungeon *dungeon){
                 TILE_SIZE,
                 TILE_SIZE
             };
+
 
             int sum_ng = 0;
             for (int n = 0; n < NG_8; ++n) {
@@ -89,10 +177,9 @@ void render_dungeon(Dungeon *dungeon){
                     sum_ng+=ng_config[n];
                 }
             }
+
             if(sum_ng > 0){
                 Rectangle src_wall = src_wall_side;
-
-
 
                 if(
                     sum_ng == 56 ||
@@ -132,9 +219,6 @@ void render_dungeon(Dungeon *dungeon){
                     src_wall = src_wall_out;
                 }
 
-
-                // tile->type = TILE_TYPE_WALL;
-
                 Color color = (tile->visible)?WHITE:BLACK;
                 if(tile->explored &&!tile->visible) color = ColorAlpha(GRAY,0.5f);
 
@@ -144,6 +228,17 @@ void render_dungeon(Dungeon *dungeon){
             }
         }
     }
+}
 
-
+void render_dungeon_helper(Dungeon *dungeon)
+{
+    for (int i = 0; i < dungeon->map.can_respawn_point_count; ++i) {
+        Vector2i point = dungeon->map.can_respawn_point[i];
+        DrawCircle(point.x * TILE_SIZE, point.y * TILE_SIZE,2,RED);
+    }
+    // for (int x = 0; x < MAP_WIDTH; ++x) {
+    //     for (int y = 0; y < MAP_HEIGHT; ++y) {
+    //         DrawCircle(x * TILE_SIZE,y * TILE_SIZE,2,RED);
+    //     }
+    // }
 }

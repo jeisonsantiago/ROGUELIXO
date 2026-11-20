@@ -20,6 +20,7 @@ void status_update(Entity *entity)
     if(entity->status[STATUS_POISONED] > 0){
         entity->hp -= 1;
         entity->status[STATUS_POISONED]--;
+        TraceLog(LOG_INFO,"status: %u %i", STATUS_POISONED,entity->status[STATUS_POISONED]);
         TraceLog(LOG_INFO,"%s is wracked by poison. (hp %d)", entity->name, entity->hp > 0 ? entity->hp : 0);
         if (entity->hp <= 0) {
             entity->hp = 0; entity->alive = false; TraceLog(LOG_INFO,"%s succumbs to poison.", entity->name);

@@ -4,7 +4,7 @@
 typedef struct Entity Entity;
 
 typedef enum Status{
-    STATUS_NONE,
+    STATUS_NONE = 0,
     STATUS_POISONED,
     STATUS_REGEN,
     STATUS_COUNT

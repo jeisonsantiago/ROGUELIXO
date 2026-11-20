@@ -1,6 +1,8 @@
 #ifndef PCH_H
 #define PCH_H
 
+
+#include <limits.h>
 #include <time.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -15,6 +17,7 @@
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
 #define STR_LENGHT 30
+#define STR_LENGHT_MESSAGE 2024
 
 
 static int directions[4][2] = {

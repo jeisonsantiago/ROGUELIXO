@@ -10,12 +10,12 @@ static void inventory_check_eqquiped(Inventory *self){
 
 void inventory_init(Inventory *self)
 {
-    self->inventory_count = -1;
-    for (int i = 0; i < MAX_INVENTORY_SLOTS; ++i) {
-        self->inventory[i].occupied = false;
-    }
-
     self->selected_slot = 0;
+    self->inventory_count = 0;
+    memset(self->inventory,0,sizeof self->inventory);
+
+
+    strcpy(self->description,"");
 }
 
 int inventory_add_item(Inventory *self, Item item)
@@ -23,7 +23,13 @@ int inventory_add_item(Inventory *self, Item item)
     if(self->inventory_count >= MAX_INVENTORY_SLOTS){
         return -1; // inventory full capacity
     }
+
     self->inventory[self->inventory_count++] = (InventorySlot){.item = item, .occupied = true};
+    // int index = self->inventory_count;
+
+    // self->inventory[index].item = item;
+    // self->inventory[index].occupied = true;
+    // self->inventory_count = index + 1;
     // TraceLog(LOG_INFO,"ITEM ADDED");
     return 1;
 }
@@ -49,7 +55,6 @@ void inventory_render(Inventory *self, Camera2D *camera)
     NPatchInfo ninePatchInfo1 = { (Rectangle){ 0.0f, 0.0f, 64.0f, 64.0f }, 12, 40, 12, 12, NPATCH_NINE_PATCH };
 
     Vector2 s2w = GetScreenToWorld2D((Vector2){w*0.5f,h*0.5f},*camera); // center
-
     Rectangle dest = (Rectangle){s2w.x - (inventory_w * 0.5f),s2w.y - (inventory_h * 0.5f),inventory_w, inventory_h};
     Rectangle ref = dest;
     DrawRectangleRec(dest,DARKGRAY);
@@ -93,6 +98,16 @@ void inventory_render(Inventory *self, Camera2D *camera)
     char *text = "[E] to (use/equip/unequip) item \n[ESC] or [I] to exit inventory.";
     text_lenght = MeasureText(text,10);
     DrawText(text,ref.x+(ref.width*0.5f)-(text_lenght*0.5f), ref.y+160,10,WHITE);
+
+    Rectangle description  = {
+        self->rect_weapon_slot.x+75, self->rect_weapon_slot.y,162,45
+    };
+
+    DrawRectangleLinesEx(description,1,GRAY);
+    if(self->inventory_count >= 0){
+        // item info
+        DrawText(self->description,self->rect_weapon_slot.x+80, self->rect_weapon_slot.y+5, 2,WHITE);
+    }
 
     // render items in the inventory
     if(self->inventory_count >= 0){
@@ -142,6 +157,7 @@ int inventory_update(Inventory *self, GamePlay *gameplay){
     }
 
     int slot = self->selected_slot;
+    strcpy(self->description,self->inventory[self->selected_slot].item.description);
 
     // if(shared_context()->input_state.time_out_actions_pressed[ACTION_MOVE_UP]){
     //     dy = -1;
@@ -183,9 +199,12 @@ int inventory_update(Inventory *self, GamePlay *gameplay){
             // check if it's consumable or equip
             Item *item = &self->inventory[self->selected_slot].item;
             switch (item->type) {
-            case ITEM_TYPE_POTION_HEALING:{
-                entity_quaff(&gameplay->player,self->selected_slot);
-                inventory_remove(&gameplay->player.inventory,self->selected_slot);
+            case ITEM_TYPE_POTION:{
+
+                if(item->data.potion.type == POTION_HEALING){
+                    entity_quaff(&gameplay->player,self->selected_slot);
+                    inventory_remove(&gameplay->player.inventory,self->selected_slot);
+                }
                 break;
             }
             case ITEM_TYPE_WEAPON:{

@@ -1,30 +1,59 @@
 #include "player.h"
 
 #include "map.h"
-#include "shared_context.h"
+// #include "shared_context.h"
 #include "entity.h"
 #include "gameplay.h"
 #include "helpers.h"
 
+
+static void equip_ranged(Entity *entity){
+
+    Item it ={
+        .identified = true,
+        .type = ITEM_TYPE_WEAPON,
+        .x = 0,
+        .y = 0,
+        .data.weapon = (Weapon){.amount = 2, .type = WEAPON_RANGED},
+    };
+
+    it.sprite_index = (16*4+9);
+    // it.sprite_index = ();
+    strcpy(it.description,TextFormat("Bow Fuckery: %i STR",it.data.weapon.amount));
+
+    inventory_add_item(&entity->inventory, it);
+
+    entity_equip(entity,0);
+
+    entity->state = STATE_IDLE;
+}
+
 void player_entity_setup(Entity *entity){
     strcpy(entity->name,"player");
     entity->damage = 5;
-    entity->data.player.fov_distance = 8;
-}
+    entity->data.player.fov_distance = 10;
+    entity->timer_attacking = 0.3f;
 
+    // set ranged equiped
+    equip_ranged(entity);
+}
 
 void player_calculate_fov(GamePlay *gameplay)
 {
     Entity *player = &gameplay->player;
     // calculate FOV // first octant
     int max_distance = gameplay->player.data.player.fov_distance;
-    gameplay->dungeon.map.tiles[gameplay->player.y][gameplay->player.x].visible = true;
+
+    // get current dungeon;
+    Dungeon *dungeon = gameplay_current_dungeon(gameplay);
+
+    dungeon->map.tiles[gameplay->player.y][gameplay->player.x].visible = true;
     int x = 0;
     int y = 0;
 
     for (int x = 0; x < MAP_WIDTH; ++x) {
         for (int y = 0; y < MAP_HEIGHT; ++y) {
-            gameplay->dungeon.map.tiles[y][x].visible = false;
+            dungeon->map.tiles[y][x].visible = false;
         }
     }
 
@@ -42,13 +71,13 @@ void player_calculate_fov(GamePlay *gameplay)
                 int vx = gameplay->player.x + pos.x;
                 int vy = gameplay->player.y - pos.y;
 
-                if(!map_is_inside(&gameplay->dungeon.map,vx,vy)) continue;
+                if(!map_is_inside(&dungeon->map,vx,vy)) continue;
 
                 int dx = vx - gameplay->player.x;
                 int dy = vy - gameplay->player.y;
 
                 if(dx * dx + dy * dy < (max_distance * max_distance)){
-                    gameplay->dungeon.map.tiles[vy][vx].visible = true;
+                    dungeon->map.tiles[vy][vx].visible = true;
                     visibles[visibles_count++] = (Vector2){vx,vy};
                 }
             }
@@ -56,7 +85,7 @@ void player_calculate_fov(GamePlay *gameplay)
     }
 
     for (int i = 0; i < visibles_count; ++i) {
-        gameplay->dungeon.map.tiles[(int)visibles[i].y][(int)visibles[i].x].visible = false;
+        dungeon->map.tiles[(int)visibles[i].y][(int)visibles[i].x].visible = false;
     }
 
     // self->player.data.player.edges_count = 0;
@@ -93,10 +122,10 @@ void player_calculate_fov(GamePlay *gameplay)
                     int tile_y = (int)floorf(visibles[r].y);
 
                     // Check these indices are within the map bounds before indexing.
-                    gameplay->dungeon.map.tiles[tile_y][tile_x].visible = true;
-                    gameplay->dungeon.map.tiles[tile_y][tile_x].explored = true;
-                    if (gameplay->dungeon.map.tiles[tile_y][tile_x].type == TILE_TYPE_WALL) {
-                        // self->dungeon.map.tiles[tile_y][tile_x].visible = false;
+                    dungeon->map.tiles[tile_y][tile_x].visible = true;
+                    dungeon->map.tiles[tile_y][tile_x].explored = true;
+
+                    if (dungeon->map.tiles[tile_y][tile_x].type == TILE_TYPE_WALL) {
                         wall_reached = true;
                         break;
                     }
@@ -110,15 +139,30 @@ void player_calculate_fov(GamePlay *gameplay)
 
 void player_pickup_here(GamePlay *gameplay)
 {
-    for (int i = 0; i < gameplay->dungeon.item_count; ++i) {
-        Item *item = &gameplay->dungeon.items[i];
+    Dungeon *dungeon = gameplay_current_dungeon(gameplay);
+
+    for (int i = 0; i < dungeon->item_count; ++i) {
+        Item *item = &dungeon->items[i];
         if(item->x == gameplay->player.x && item->y == gameplay->player.y){
             TraceLog(LOG_INFO,"Player got %s",item_names[item->type]);
 
             Entity *player = &gameplay->player;
             // add to inventory then remove from ground dummy!
+            // Item it = *(Item*)item;
             inventory_add_item(&player->inventory,*item);
-            dungeon_remove_item(&gameplay->dungeon,item->x, item->y);
+            dungeon_remove_item(dungeon,item->x, item->y);
+        }
+    }
+}
+
+void player_show_map(GamePlay *gameplay){
+
+    Dungeon *dungeon = gameplay_current_dungeon(gameplay);
+
+    for (int x = 0; x < MAP_WIDTH; ++x) {
+        for (int y = 0; y < MAP_HEIGHT; ++y) {
+
+            dungeon->map.tiles[y][x].visible = true;
         }
     }
 }

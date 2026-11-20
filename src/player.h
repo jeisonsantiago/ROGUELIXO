@@ -23,5 +23,6 @@ void player_calculate_fov(GamePlay *gameplay);
 void player_pickup_here(GamePlay *gameplay);
 
 // void render_player(Player *self);
+void player_show_map(GamePlay *gameplay);
 
 #endif // PLAYER_H

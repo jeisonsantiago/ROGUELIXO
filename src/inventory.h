@@ -18,6 +18,7 @@ typedef struct Inventory{
     Rectangle rect_slots[MAX_INVENTORY_SLOTS];
     Rectangle rect_armor_slot;
     Rectangle rect_weapon_slot;
+    char description[STR_LENGHT];
     int selected_slot;
 }Inventory;
 
