@@ -69,28 +69,25 @@ static void screen_shake_update(GamePlay *game, float delta_time){
 }
 
 
-static void change_level(GamePlay *self){
+static void change_level(GamePlay *self, bool is_last){
 
     // TraceLog(LOG_INFO,"%i",self->current_dungeon);
 
-    // ++self->current_dungeon;
+    self->current_dungeon++;
+    TraceLog(LOG_INFO,"level:%u is last:%b",self->current_dungeon, is_last);
 
-    // return;
-    // Dungeon *dungeon = gameplay_current_dungeon(self);
-    // dungeon_populate(dungeon,0,0,self->current_dungeon, DUNGEON_TYPE_ROOMS);
+    Dungeon *dungeon = gameplay_current_dungeon(self);
+    dungeon_populate(dungeon,self->player.x,self->player.y,self->current_dungeon, dungeon->type);
+    entity_set_position(&self->player,dungeon->player_start_x,dungeon->player_start_y);
 
-    // entity_set_position(&self->player,dungeon->player_start_x,dungeon->player_start_y);
+    self->camera.target.x = self->player.x * TILE_SIZE;
+    self->camera.target.y = self->player.y * TILE_SIZE;
 
-    // // compute map distance
-    // map_compute_distance_from_goal(&dungeon->map,self->player.x, self->player.y);
+    if(is_last){
+        dungeon->stairs_x = 0;
+        dungeon->stairs_y = 0;
+    }
 
-    // self->camera.target.x = self->player.x * TILE_SIZE;
-    // self->camera.target.y = self->player.y * TILE_SIZE;
-
-    // if(self->current_dungeon == (DUNGEON_COUNT-1)){
-    //     dungeon->stairs_x = 0;
-    //     dungeon->stairs_y = 0;
-    // }
 
     // UPDATE DIFICULTY AFTERWARDS
     // int monsterCount = 8 + depth * 2;             // more, the deeper you go
@@ -109,12 +106,16 @@ void gameplay_restart_playing(GamePlay *self)
     // create player
     entity_init(&self->player,ENTITY_TYPE_PLAYER);
 
-    // self->current_dungeon = 0;
+    self->current_dungeon = 0;
     self->inventory = false;
     // init dungeon
 
-    // Dungeon *dungeon = gameplay_current_dungeon(self);
+
     factory_set_levels(self);
+
+    // Dungeon *dungeon = gameplay_current_dungeon(self);
+    // dungeon_init(dungeon,0,0,dungeon->type);
+    // dungeon_populate(dungeon,self->player.x, self->player.y,0,dungeon->type);
 
     // dungeon_populate(&self->dungeon[0],0,0,1,DUNGEON_TYPE_VILLAGE);
     // dungeon_populate(&self->dungeon[0],0,0,1,DUNGEON_TYPE_ROOMS);
@@ -162,25 +163,19 @@ void gameplay_init(GamePlay *self){
 
     memset(self,0,sizeof(*self));
 
-
-
     //set camera
     self->camera.zoom = 3;
     self->camera.offset = (Vector2){(SCREEN_WIDTH*0.5f),(SCREEN_HEIGHT*0.5f)};
     // self->camera.offset = (Vector2){ GetRenderWidth()/2.0f, GetRenderHeight()/2.0f };
     self->camera.rotation = 0.0f;
 
-    // self->camera.target.x = self->player.x * TILE_SIZE;
-    // self->camera.target.y = self->player.y * TILE_SIZE;
-
     self->screen = SCREEN_MENU;
     // self->screen = SCREEN_PLAYING;
-
 
     self->transition = screen_transition_create();
     // self->transition.alpha = 0.0f;
 
-    self->transition_counter = 0.0f;    
+    self->transition_counter = 0.0f;
 }
 
 void gameplay_update(GamePlay *self, float delta_time){
@@ -390,11 +385,16 @@ void gameplay_on_enter_stairs(GamePlay *self)
     Dungeon *dungeon = gameplay_current_dungeon(self);
     if(self->player.x == dungeon->stairs_x && self->player.y == dungeon->stairs_y){
 
+        // number of dungeons
+        int dungeon_count = 0;
+        for (int i = 0; i < DUNGEON_COUNT; ++i) {
+            dungeon_count+=(self->dungeon[i].type != DUNGEON_TYPE_UNDEFINED)?1:0;
+        }
 
         if(self->transition.phase == TRANSITION_FADE_IN){
             // TraceLog(LOG_INFO,"GOING DOWN!");
-            // change_level(self);
-            self->current_dungeon++;
+            change_level(self,(self->current_dungeon));
+            // self->current_dungeon++;
             return;
         }
 

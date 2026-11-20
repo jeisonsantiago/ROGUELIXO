@@ -7,7 +7,7 @@
 #include "screen.h"
 #include "render_game_ui.h"
 
-#define DUNGEON_COUNT 3
+#define DUNGEON_COUNT 5
 
 typedef enum GameScreen{
     SCREEN_PLAYING,

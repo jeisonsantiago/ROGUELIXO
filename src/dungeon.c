@@ -115,6 +115,12 @@ static void distribute_items(Dungeon *self, int player_x, int player_y){
     }
 }
 
+void dungeon_set(Dungeon *self, DungeonType type)
+{
+    self->type = type;
+}
+
+
 void dungeon_init(Dungeon *self, int player_x, int player_y, DungeonType type){
 
     memset(self,0,sizeof(&self));
@@ -156,6 +162,8 @@ void dungeon_init(Dungeon *self, int player_x, int player_y, DungeonType type){
     }else if(type == DUNGEON_TYPE_ROOMS){
         map_init(&self->map);
         pos = dungeon_random_position_room(self,0);
+
+        // if max number of
 
         // set stairs
         self->stairs_x = centre_x(&self->map.rooms[self->map.rooms_count-1]);
@@ -235,4 +243,5 @@ void dungeon_remove_monster_by_index(Dungeon *self, int index){
     self->monster[index] = self->monster[--self->monster_count];
     return;
 }
+
 

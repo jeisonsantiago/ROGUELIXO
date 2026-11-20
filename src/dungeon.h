@@ -40,6 +40,7 @@ typedef struct Dungeon{
 
 // void dungeon_init(Dungeon *self);
 
+void dungeon_set(Dungeon *self,DungeonType type);
 void dungeon_init(Dungeon *self, int player_x, int player_y, DungeonType type);
 void dungeon_remove_item(Dungeon *self, int x, int y);
 void dungeon_remove_monster(Dungeon *self, int x, int y);
