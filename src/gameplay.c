@@ -394,11 +394,13 @@ void gameplay_on_enter_stairs(GamePlay *self)
         if(self->transition.phase == TRANSITION_FADE_IN){
             // TraceLog(LOG_INFO,"GOING DOWN!");
             change_level(self,(self->current_dungeon));
+            self->player.can_move = true;
             // self->current_dungeon++;
             return;
         }
 
         if(!self->transition_pending){
+            self->player.can_move = false;
             self->transition_pending = true;
             screen_transition_begin_fade_out(&self->transition);
         }

@@ -29,6 +29,7 @@ typedef enum EntityState{
 typedef struct Entity{
     int x;
     int y;
+    bool can_move;
     int hp;
     int max_hp;
     bool alive;

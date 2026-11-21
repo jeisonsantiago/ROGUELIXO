@@ -30,6 +30,7 @@ void entity_init(Entity *self, EntityType type){
     self->has_weapon = false;
     self->weapon = (Item){.type = ITEM_TYPE_UNDEFINED}; // empty
     self->armour = (Item){.type = ITEM_TYPE_UNDEFINED}; // empty
+    self->can_move = true;
 
     inventory_init(&self->inventory);
 
@@ -252,6 +253,9 @@ void entity_update(Entity *self, float delta_time)
 }
 
 bool entity_try_move(Entity *self,int dx, int dy, const Map *map){
+
+
+    if(!self->can_move) return false;
 
     if(self->state == STATE_ATTACKING) return false;
 
