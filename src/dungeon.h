@@ -35,6 +35,7 @@ typedef struct Dungeon{
     // to go down
     int stairs_down_x;
     int stairs_down_y;
+    bool stairs_down_active;
 
     // to go up
     int stairs_up_x;

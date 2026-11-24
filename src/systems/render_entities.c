@@ -66,12 +66,15 @@ void render_entities_system(GamePlay *gameplay){
         if(!monster->alive) continue;
 
         if(map_is_visible(&dungeon->map,monster->x, monster->y)){
-
             render_entity(monster,asset_manager);
             // DrawText(TextFormat("e:%i",i),monster->x * TILE_SIZE, monster->y * TILE_SIZE, 2,GREEN);
             // DrawLine(gameplay->player.x, gameplay->player.y, monster->x,monster->y,RED);
         }
     }
+
+    // stairs info
+    // DrawText(TextFormat("%i",dungeon->stairs_down_active),dungeon->stairs_down_x,dungeon->stairs_down_y,10,WHITE);
+    // DrawText(TextFormat("%i",dungeon->stairs_up_active),dungeon->stairs_up_x,dungeon->stairs_up_y,10,RED);
 
     // // render distance map number
     // for (int x = 0; x < MAP_WIDTH; ++x) {

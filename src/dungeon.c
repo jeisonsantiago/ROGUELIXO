@@ -164,7 +164,13 @@ void dungeon_init(Dungeon *self, int player_x, int player_y, DungeonType type){
 
         // if max number of
 
+
+
         // set stairs
+
+        self->stairs_up_x = centre_x(&self->map.rooms[0]);
+        self->stairs_up_y = centre_y(&self->map.rooms[0]);
+
         self->stairs_down_x = centre_x(&self->map.rooms[self->map.rooms_count-1]);
         self->stairs_down_y = centre_y(&self->map.rooms[self->map.rooms_count-1]);
 

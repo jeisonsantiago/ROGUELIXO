@@ -24,6 +24,7 @@ typedef struct GamePlay{
 
     Dungeon dungeon[DUNGEON_COUNT];
     int current_dungeon_depth;
+    int previous_dungeon_depth;
 
     Entity player;
     bool dead;
@@ -48,6 +49,7 @@ void gameplay_render(GamePlay *self, float delta_time);
 Dungeon *gameplay_current_dungeon(GamePlay *self);
 void gameplay_on_enter_stairs(GamePlay *self);
 void gameplay_on_exit_stairs_up(GamePlay *self);
+void gameplay_on_exit_stairs_down(GamePlay *self);
 
 
 #endif // GAMEPLAY_H

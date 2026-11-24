@@ -3,6 +3,10 @@
 #include "asset_manager.h"
 #include "shared_context.h"
 
+static void render_dungeon_info(GamePlay *gameplay){
+    DrawText(TextFormat("%i",gameplay->current_dungeon_depth),10,10,20,WHITE);
+}
+
 
 static void render_health_bar(Entity *entity){
     Rectangle rect_board = {entity->visual_x * TILE_SIZE, entity->visual_y * TILE_SIZE -2, TILE_SIZE, 4};
@@ -100,7 +104,6 @@ void render_game_ui_gameplay_system(GamePlay *gameplay, float delta_time){
                 // TraceLog(LOG_INFO,"FRONT!");
                 render_npc_info(actor);
 
-
                 // TraceLog(LOG_INFO,"%s",actor->data.npc.dialog);
 
             }
@@ -121,4 +124,11 @@ void render_game_ui_gameplay_system(GamePlay *gameplay, float delta_time){
 void render_game_ui_system_screen(GamePlay *gameplay){
     // render player health using screen coordinates
     render_player_health_bar(&gameplay->player,1,1);
+
+    render_dungeon_info(gameplay);
+
+
+    Dungeon *dungeon = gameplay_current_dungeon(gameplay);
+
+
 }
