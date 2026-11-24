@@ -11,6 +11,8 @@ void factory_monster(Dungeon *dungeon, int x, int y)
     dungeon->monster_count++;
     entity_init(entity,ENTITY_TYPE_MONSTER);
 
+
+    entity_set_sprite(entity,6);
     entity_set_position(entity,x,y);
 
     strcpy(entity->name,"monster");
@@ -22,6 +24,5 @@ void factory_monster(Dungeon *dungeon, int x, int y)
     entity->trait.type = TRAIT_VENOMOUS;
     entity->trait.turns = 2;
     entity->trait.chance = 25; // 25% chance of proc
-
 }
 

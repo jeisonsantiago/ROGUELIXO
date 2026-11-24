@@ -87,9 +87,12 @@ void render_game_ui_gameplay_system(GamePlay *gameplay, float delta_time){
 
     if(gameplay->inventory) return;
 
+
+
+    Dungeon *dungeon = gameplay_current_dungeon(gameplay);
     // render monster health
-    for (int i = 0; i < gameplay->dungeon->monster_count; ++i) {
-        Entity *actor = &gameplay->dungeon->monster[i];
+    for (int i = 0; i < dungeon->monster_count; ++i) {
+        Entity *actor = &dungeon->monster[i];
 
         if(actor->entity_type == ENTITY_TYPE_NPC) {
             if(npc_player_in_front(actor,&gameplay->player) &&
@@ -106,7 +109,7 @@ void render_game_ui_gameplay_system(GamePlay *gameplay, float delta_time){
             }
         }
 
-        if(map_is_visible(&gameplay->dungeon->map,actor->x, actor->y) && actor->alive){
+        if(map_is_visible(&dungeon->map,actor->x, actor->y) && actor->alive){
 
             if(actor->entity_type==ENTITY_TYPE_MONSTER){
                 render_health_bar(actor);

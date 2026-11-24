@@ -7,7 +7,7 @@
 #include "screen.h"
 #include "render_game_ui.h"
 
-#define DUNGEON_COUNT 5
+#define DUNGEON_COUNT 10
 
 typedef enum GameScreen{
     SCREEN_PLAYING,
@@ -23,11 +23,11 @@ typedef struct GamePlay{
     ScreenTransition transition;
 
     Dungeon dungeon[DUNGEON_COUNT];
-    int current_dungeon;
+    int current_dungeon_depth;
 
     Entity player;
     bool dead;
-    bool dirty;    
+    bool dirty;
     Camera2D camera;
     ScreenShake screen_shake;
     RangedMode ranged_mode;
@@ -47,6 +47,7 @@ void gameplay_render(GamePlay *self, float delta_time);
 
 Dungeon *gameplay_current_dungeon(GamePlay *self);
 void gameplay_on_enter_stairs(GamePlay *self);
+void gameplay_on_exit_stairs_up(GamePlay *self);
 
 
 #endif // GAMEPLAY_H

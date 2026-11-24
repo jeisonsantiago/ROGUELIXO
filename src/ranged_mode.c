@@ -29,6 +29,8 @@ bool ranged_mode_update(GamePlay *gameplay){
     gameplay->ranged_mode.position.x += dx;
     gameplay->ranged_mode.position.y += dy;
 
+    Dungeon *dungeon = gameplay_current_dungeon(gameplay);
+
     // check position
     Entity *monster = monster_at(gameplay,ranged_mode->position.x, ranged_mode->position.y);
     ranged_mode->can_shoot = !(ranged_mode->position.x == player->x && ranged_mode->position.y == player->y ) && (monster != NULL);
@@ -40,7 +42,7 @@ bool ranged_mode_update(GamePlay *gameplay){
             if(player->has_weapon && player->weapon.type == ITEM_TYPE_WEAPON && player->weapon.data.weapon.type == WEAPON_RANGED){
                 TraceLog(LOG_INFO,"ATTACK RANGED!");
 
-                if(map_is_visible(&gameplay->dungeon->map,monster->x, monster->y)){
+                if(map_is_visible(&dungeon->map,monster->x, monster->y)){
                     //entity_attack(&gameplay->player, monster);
                     entity_start_attacking(&gameplay->player, monster);
                     return true;

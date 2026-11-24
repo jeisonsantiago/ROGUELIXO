@@ -51,15 +51,8 @@ void entity_init(Entity *self, EntityType type){
         monster_entity_setup(self);
         self->texture_asset_index = 2;
         self->texture_sprite_index = 0;
-
-        // npc_entity_setup(self,"");
-
         break;
-
-        // self.
-    }
-    default:
-        break;
+    }    
     }
 
     for (int i = 0; i < STATUS_COUNT; ++i) {
@@ -317,4 +310,12 @@ void entity_set_position(Entity *self, int x, int y)
 void entity_set_sprite(Entity *self, int sprite_index)
 {
     self->texture_sprite_index = sprite_index;
+}
+
+bool entity_has_melee_equiped(Entity *self){
+    return (self->has_weapon && self->weapon.data.weapon.type == WEAPON_MELEE);
+}
+
+bool entity_has_ranged_equiped(Entity *self){
+    return (self->has_weapon && self->weapon.data.weapon.type == WEAPON_RANGED);
 }

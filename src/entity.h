@@ -108,4 +108,7 @@ void entity_quaff(Entity *self, int slot);
 void entity_equip(Entity *self, int slot); // can be weapon or amor (maybe more stuff in the future)
 void entity_unequip(Entity *self, int slot);
 
+bool entity_has_melee_equiped(Entity *self);
+bool entity_has_ranged_equiped(Entity *self);
+
 #endif // ENTITY_H

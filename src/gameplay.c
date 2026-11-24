@@ -69,25 +69,61 @@ static void screen_shake_update(GamePlay *game, float delta_time){
 }
 
 
-static void change_level(GamePlay *self, bool is_last){
+static void change_level(GamePlay *self){
 
     // TraceLog(LOG_INFO,"%i",self->current_dungeon);
 
-    self->current_dungeon++;
-    TraceLog(LOG_INFO,"level:%u is last:%b",self->current_dungeon, is_last);
+
+    // TraceLog(LOG_INFO,"level:%u is last:%b",self->current_dungeon, is_last);
 
     Dungeon *dungeon = gameplay_current_dungeon(self);
-    dungeon_populate(dungeon,self->player.x,self->player.y,self->current_dungeon, dungeon->type);
+
+    // TraceLog(LOG_INFO,"current dungeon index:%i",self->current_dungeon_depth);
+    if(!dungeon->generated){
+        dungeon_init(dungeon,self->player.x,self->player.y, dungeon->type);
+    }
+
     entity_set_position(&self->player,dungeon->player_start_x,dungeon->player_start_y);
+
+    //set stairs up
+    if(dungeon->type != DUNGEON_TYPE_VILLAGE){
+        dungeon->stairs_up_x = dungeon->player_start_x;
+        dungeon->stairs_up_y = dungeon->player_start_y;
+    }else{
+        dungeon->stairs_up_x = 0;
+        dungeon->stairs_up_y = 0;
+        // TraceLog(LOG_INFO,"NO STAIRS UP");
+    }
 
     self->camera.target.x = self->player.x * TILE_SIZE;
     self->camera.target.y = self->player.y * TILE_SIZE;
 
-    if(is_last){
-        dungeon->stairs_x = 0;
-        dungeon->stairs_y = 0;
+    int dungeon_count = 0;
+    for (int i = 0; i < DUNGEON_COUNT; ++i) {
+        dungeon_count+=(self->dungeon[i].type != DUNGEON_TYPE_UNDEFINED)?1:0;
     }
 
+    if((dungeon_count-1) == (self->current_dungeon_depth)){
+        dungeon->stairs_down_x = 0;
+        dungeon->stairs_down_y = 0;
+    }
+
+    // for rooms
+    // for (int i = 0; i < dungeon->map.rooms_count; ++i) {
+    // for (int i = 0; i < 1; ++i) {
+    // TraceLog(LOG_INFO,"monster count:%i",dungeon->monster_count);
+
+    if(!dungeon->generated){
+        for (int m = 0; m < 1; ++m) {
+            Vector2i monster_pos = dungeon_random_position_room(dungeon,0);
+            factory_monster(dungeon,monster_pos.x, monster_pos.y);
+            TraceLog(LOG_INFO, "monster created: %i %i",monster_pos.x, monster_pos.y);
+        }
+    }
+
+    map_compute_distance_from_goal(&dungeon->map,self->player.x, self->player.y);
+
+    dungeon->generated = true;
 
     // UPDATE DIFICULTY AFTERWARDS
     // int monsterCount = 8 + depth * 2;             // more, the deeper you go
@@ -106,7 +142,7 @@ void gameplay_restart_playing(GamePlay *self)
     // create player
     entity_init(&self->player,ENTITY_TYPE_PLAYER);
 
-    self->current_dungeon = 0;
+    self->current_dungeon_depth = 0;
     self->inventory = false;
     // init dungeon
 
@@ -263,8 +299,8 @@ void gameplay_update(GamePlay *self, float delta_time){
     entity_move_and_slide(&self->player, delta_time);
     // self->player.timer_attacking_counter += delta_time;
 
-    for (int m = 0; m < self->dungeon->monster_count; ++m) {
-        Entity *m_e = &self->dungeon->monster[m];
+    for (int m = 0; m < dungeon->monster_count; ++m) {
+        Entity *m_e = &dungeon->monster[m];
         entity_move_and_slide(m_e, delta_time);
         entity_update(m_e,delta_time);
 
@@ -279,9 +315,15 @@ void gameplay_update(GamePlay *self, float delta_time){
         // is there monster?
         // TraceLog(LOG_INFO,"MOVE!");
 
-
         Entity *target = monster_at(self, self->player.x + dx, self->player.y + dy);
+
         if(target && self->player.state == STATE_IDLE){
+
+            // check if has weapon equiped
+            if(!entity_has_melee_equiped(&self->player)){
+                TraceLog(LOG_INFO,"player has no melee weapon equiped!");
+                return;
+            }
             // TraceLog(LOG_INFO,"target %p",target);
             // trigger attack
             //entity_attack(&self->player, target);
@@ -291,11 +333,16 @@ void gameplay_update(GamePlay *self, float delta_time){
         }else if(entity_try_move(&self->player,dx,dy,&dungeon->map)){
             // }else if(entity_try_move_smooth(&self->player,dx,dy,&dungeon->map,delta_time)){
             took_turn = true;
+
+
+            // check dungeon stairs up activation (needs to be active after player left)
+
         }
 
         // self->dirty = entity_try_move(&self->player,dx,dy,&self->dungeon.map);
         // monster turn
         if(took_turn){
+            gameplay_on_exit_stairs_up(self);
             player_pickup_here(self);
             monster_update(self);
 
@@ -307,6 +354,7 @@ void gameplay_update(GamePlay *self, float delta_time){
             }
 
             map_compute_distance_from_goal(&dungeon->map,self->player.x, self->player.y);
+
             if(self->player.hp <= 0){
                 self->dead = true;
                 self->dirty = true;
@@ -375,7 +423,7 @@ void gameplay_render(GamePlay *self, float delta_time){
 
 Dungeon *gameplay_current_dungeon(GamePlay *self)
 {
-    return &self->dungeon[self->current_dungeon];
+    return &self->dungeon[self->current_dungeon_depth];
 }
 
 void gameplay_on_enter_stairs(GamePlay *self)
@@ -383,28 +431,78 @@ void gameplay_on_enter_stairs(GamePlay *self)
     // check player position and stairs
 
     Dungeon *dungeon = gameplay_current_dungeon(self);
-    if(self->player.x == dungeon->stairs_x && self->player.y == dungeon->stairs_y){
 
-        // number of dungeons
-        int dungeon_count = 0;
-        for (int i = 0; i < DUNGEON_COUNT; ++i) {
-            dungeon_count+=(self->dungeon[i].type != DUNGEON_TYPE_UNDEFINED)?1:0;
+    // number of dungeons
+    int dungeon_count = 0;
+    for (int i = 0; i < DUNGEON_COUNT; ++i) {
+        dungeon_count+=(self->dungeon[i].type != DUNGEON_TYPE_UNDEFINED)?1:0;
+    }
+
+    // if(dungeon->stairs_up_active){
+    //     TraceLog(LOG_INFO,"stairs up %u",true);
+    // }
+
+    bool on_stairs_up = false;
+    bool on_stairs_down = false;
+
+
+    if(dungeon_has_stairs_up(dungeon)){
+        on_stairs_up = (self->player.x == dungeon->stairs_up_x && self->player.y == dungeon->stairs_up_y) && dungeon->stairs_up_active && dungeon->type;
+    }
+
+    if(dungeon_has_stairs_down(dungeon)){
+        on_stairs_down = (self->player.x == dungeon->stairs_down_x && self->player.y == dungeon->stairs_down_y);
+    }
+
+    // TraceLog(LOG_INFO,"stairs up %u // stairs down %u ",on_stairs_up, on_stairs_down);
+    // TraceLog(LOG_INFO,"player:(%i %i) // stairs:(%i %i)  can: %u",self->player.x, self->player.y,dungeon->stairs_up_x, dungeon->stairs_up_y, dungeon->stairs_up_active);
+
+    bool on_stairs = (on_stairs_down || on_stairs_up);
+
+    if(!on_stairs) return;
+
+    if(self->transition.phase == TRANSITION_FADE_IN){
+
+        if(on_stairs_down){
+            self->current_dungeon_depth++;
+            TraceLog(LOG_INFO,"stairs down:%i",self->current_dungeon_depth);
+            Dungeon *d =gameplay_current_dungeon(self);
+            d->stairs_up_active = false;
         }
 
-        if(self->transition.phase == TRANSITION_FADE_IN){
-            // TraceLog(LOG_INFO,"GOING DOWN!");
-            change_level(self,(self->current_dungeon));
-            self->player.can_move = true;
-            // self->current_dungeon++;
-            return;
+        if(on_stairs_up){
+            self->current_dungeon_depth--;
+            TraceLog(LOG_INFO,"stairs up:%i",self->current_dungeon_depth);
         }
 
-        if(!self->transition_pending){
-            self->player.can_move = false;
-            self->transition_pending = true;
-            screen_transition_begin_fade_out(&self->transition);
-        }
+        TraceLog(LOG_INFO,"--");
+        change_level(self);
+        self->player.can_move = true;
+        // self->current_dungeon++;
+        return;
+    }
 
+    if(!self->transition_pending){
+        self->player.can_move = false;
+        self->transition_pending = true;
+        screen_transition_begin_fade_out(&self->transition);
     }
 }
 
+
+void gameplay_on_exit_stairs_up(GamePlay *self)
+{
+    Dungeon *dungeon = gameplay_current_dungeon(self);
+    if(dungeon->type == DUNGEON_TYPE_VILLAGE) return;
+
+    Vector2 player = (Vector2){self->player.x,self->player.y};
+    Vector2 player_next = (Vector2){dungeon->stairs_up_x,dungeon->stairs_up_y};
+
+    int distance = (int)Vector2Distance(player,player_next);
+
+    if(!dungeon->stairs_up_active){
+        dungeon->stairs_up_active = (distance >= 1);
+    }else{
+        TraceLog(LOG_INFO,"stairs up active");
+    }
+}

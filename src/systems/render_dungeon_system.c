@@ -15,6 +15,7 @@ void render_dungeon(Dungeon *dungeon){
     Rectangle src_wall_out = asset_manager_get_texture_rect_by_index(3,ta);
     Rectangle src_wall_side = asset_manager_get_texture_rect_by_index(6,ta);
     Rectangle src_stairs_down = asset_manager_get_texture_rect_by_index(12,ta);
+    Rectangle src_stairs_up = asset_manager_get_texture_rect_by_index(13,ta);
 
     if(dungeon->type == DUNGEON_TYPE_VILLAGE){
 
@@ -65,22 +66,24 @@ void render_dungeon(Dungeon *dungeon){
             }
         }
 
-        // stairs
-        if(dungeon->stairs_x != 0 && dungeon->stairs_y != 0){
+        // stairs down
+        if(dungeon->stairs_down_x != 0 && dungeon->stairs_down_y != 0){
 
-            Tile *tile = &dungeon->map.tiles[dungeon->stairs_y][dungeon->stairs_x];
+            Tile *tile = &dungeon->map.tiles[dungeon->stairs_down_y][dungeon->stairs_down_x];
             Color color = tile->visible ? WHITE : BLACK;
             if(tile->explored &&!tile->visible) color = ColorAlpha(GRAY,0.5f);
 
             Rectangle dest = {
-                dungeon->stairs_x * TILE_SIZE,
-                dungeon->stairs_y * TILE_SIZE,
+                dungeon->stairs_down_x * TILE_SIZE,
+                dungeon->stairs_down_y * TILE_SIZE,
                 TILE_SIZE,
                 TILE_SIZE
             };
 
             DrawTexturePro(ta->texture,src_stairs_down,dest,(Vector2){0,0},0,color);
         }
+
+
 
         return;
     }
@@ -123,15 +126,15 @@ void render_dungeon(Dungeon *dungeon){
     // return;
 
     // stairs
-    if(dungeon->stairs_x != 0 && dungeon->stairs_y != 0){
+    if(dungeon->stairs_down_x != 0 && dungeon->stairs_down_y != 0){
 
-        Tile *tile = &dungeon->map.tiles[dungeon->stairs_y][dungeon->stairs_x];
+        Tile *tile = &dungeon->map.tiles[dungeon->stairs_down_y][dungeon->stairs_down_x];
         Color color = tile->visible ? WHITE : BLACK;
         if(tile->explored &&!tile->visible) color = ColorAlpha(GRAY,0.5f);
 
         Rectangle dest = {
-            dungeon->stairs_x * TILE_SIZE,
-            dungeon->stairs_y * TILE_SIZE,
+            dungeon->stairs_down_x * TILE_SIZE,
+            dungeon->stairs_down_y * TILE_SIZE,
             TILE_SIZE,
             TILE_SIZE
         };
@@ -139,6 +142,23 @@ void render_dungeon(Dungeon *dungeon){
             DrawTexturePro(
                         ta->texture,
                         src_stairs_down,dest,(Vector2){0,0},0,color);
+    }
+
+    // stairs up
+    if(dungeon->type != DUNGEON_TYPE_VILLAGE && dungeon->stairs_up_x != 0 && dungeon->stairs_up_y != 0){
+
+        Tile *tile = &dungeon->map.tiles[dungeon->stairs_up_y][dungeon->stairs_up_x];
+        Color color = tile->visible ? WHITE : BLACK;
+        if(tile->explored &&!tile->visible) color = ColorAlpha(GRAY,0.5f);
+
+        Rectangle dest = {
+            dungeon->stairs_up_x * TILE_SIZE,
+            dungeon->stairs_up_y * TILE_SIZE,
+            TILE_SIZE,
+            TILE_SIZE
+        };
+
+        DrawTexturePro(ta->texture,src_stairs_up,dest,(Vector2){0,0},0,color);
     }
 
     // check neighbours

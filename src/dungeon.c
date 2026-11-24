@@ -117,18 +117,17 @@ static void distribute_items(Dungeon *self, int player_x, int player_y){
 
 void dungeon_set(Dungeon *self, DungeonType type)
 {
+    // memset(self,0,sizeof *self);
     self->type = type;
 }
 
 
 void dungeon_init(Dungeon *self, int player_x, int player_y, DungeonType type){
 
-    memset(self,0,sizeof(&self));
-
+    memset(self,0,sizeof(Dungeon));
     self->type = type;
 
     Vector2i pos = {0};
-    // map_init(&self->map);
 
     if(type == DUNGEON_TYPE_VILLAGE){
         map_init_village(&self->map);
@@ -142,14 +141,14 @@ void dungeon_init(Dungeon *self, int player_x, int player_y, DungeonType type){
         self->player_start_x = pos.x;
         self->player_start_y = pos.y;
 
-        self->stairs_x = 3;
-        self->stairs_y = 3;
+        self->stairs_down_x = 3;
+        self->stairs_down_y = 3;
 
         // add NPC
         int monster_index = self->monster_count;
         // TraceLog(LOG_INFO, "monster created index: %i",monster_index);
         Entity *entity = &self->monster[monster_index];
-        self->monster_count++;
+        self->monster_count = 1;
         entity_init(entity,ENTITY_TYPE_NPC);
         entity_set_sprite(entity,41);
         entity_set_position(entity,2,2);
@@ -166,8 +165,9 @@ void dungeon_init(Dungeon *self, int player_x, int player_y, DungeonType type){
         // if max number of
 
         // set stairs
-        self->stairs_x = centre_x(&self->map.rooms[self->map.rooms_count-1]);
-        self->stairs_y = centre_y(&self->map.rooms[self->map.rooms_count-1]);
+        self->stairs_down_x = centre_x(&self->map.rooms[self->map.rooms_count-1]);
+        self->stairs_down_y = centre_y(&self->map.rooms[self->map.rooms_count-1]);
+
     }else if (type == DUNGEON_TYPE_CAVE){
         map_init_cave(&self->map);
         pos = (Vector2i){4,4};
@@ -207,12 +207,10 @@ void dungeon_remove_item(Dungeon *self, int x, int y)
     }
 }
 
-void dungeon_populate(Dungeon *self, int player_x, int player_y, int level, DungeonType type)
+static void dungeon_populate(Dungeon *self, int player_x, int player_y, DungeonType type)
 {
     dungeon_init(self, player_x, player_y, type);
 }
-
-
 
 void dungeon_remove_monster(Dungeon *self, int x, int y)
 {
@@ -244,4 +242,11 @@ void dungeon_remove_monster_by_index(Dungeon *self, int index){
     return;
 }
 
+bool dungeon_has_stairs_up(Dungeon *self){
+    return self->stairs_up_x != 0 && self->stairs_up_y != 0;
+}
+
+bool dungeon_has_stairs_down(Dungeon *self){
+    return self->stairs_down_x != 0 && self->stairs_down_y != 0;
+}
 

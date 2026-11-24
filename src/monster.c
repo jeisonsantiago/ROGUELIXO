@@ -47,10 +47,11 @@ void monster_update(GamePlay *gameplay){
     for (int i = 0; i < dungeon->monster_count; ++i) {
         Entity *monster = &dungeon->monster[i];
 
-        if(monster->alive) continue;
+        if(!monster->alive) continue;
 
         if(monster->entity_type == ENTITY_TYPE_NPC) continue;
 
+        TraceLog(LOG_INFO,"monster update:%i %i",monster->x, monster->y);
 
         // warder if not visible
         if((int)entity_distance(&gameplay->player, monster) > gameplay->player.data.player.fov_distance){
@@ -112,8 +113,8 @@ void monster_update(GamePlay *gameplay){
                 }
             }
 
+            bool move = entity_try_move(monster,dx,dy,&dungeon->map);
 
-            entity_try_move(monster,dx,dy,&dungeon->map);
             // monster->x = dx;
             // monster->y = dy;
 

@@ -18,6 +18,7 @@ typedef enum DungeonType{
 
 typedef struct Dungeon{
     Map map;
+    bool generated;
 
     int tile_index_wall;
     int tile_index_floor;
@@ -32,8 +33,13 @@ typedef struct Dungeon{
     int player_start_y;
 
     // to go down
-    int stairs_x;
-    int stairs_y;
+    int stairs_down_x;
+    int stairs_down_y;
+
+    // to go up
+    int stairs_up_x;
+    int stairs_up_y;
+    bool stairs_up_active;
 
     DungeonType type;
 }Dungeon;
@@ -49,5 +55,8 @@ void dungeon_remove_monster_by_index(Dungeon *self, int index);
 Vector2i dungeon_random_position(Dungeon *self, int not_x, int not_y, int room);
 Vector2i dungeon_random_position_room(Dungeon *self, int room);
 Vector2i dungeon_random_position_cave(Dungeon *self);
-void dungeon_populate(Dungeon *self, int player_x, int player_y, int level, DungeonType type);
+// void dungeon_populate(Dungeon *self, int player_x, int player_y, DungeonType type);
+bool dungeon_has_stairs_up(Dungeon *self);
+bool dungeon_has_stairs_down(Dungeon *self);
+
 #endif // DUNGEON_H
