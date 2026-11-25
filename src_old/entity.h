@@ -64,8 +64,10 @@ typedef struct Entity{
     bool has_armour;
 
     // equiped (IT is not in the inventory)
-    Item weapon;
-    Item armour;
+    // Item weapon;
+    // Item armour;
+    int weapon; // slot in the inventory (can't move inside inventory)
+    int armour; // slot in the inventory (can't move inside inventory)
 
     Trait trait;
     Status status[STATUS_COUNT];
@@ -107,6 +109,7 @@ int entity_add_to_inventory(Entity *self, Item item);
 void entity_quaff(Entity *self, int slot);
 void entity_equip(Entity *self, int slot); // can be weapon or amor (maybe more stuff in the future)
 void entity_unequip(Entity *self, int slot);
+
 
 bool entity_has_melee_equiped(Entity *self);
 bool entity_has_ranged_equiped(Entity *self);

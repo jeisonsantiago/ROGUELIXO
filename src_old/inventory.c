@@ -159,12 +159,6 @@ int inventory_update(Inventory *self, GamePlay *gameplay){
     int slot = self->selected_slot;
     strcpy(self->description,self->inventory[self->selected_slot].item.description);
 
-    // if(shared_context()->input_state.time_out_actions_pressed[ACTION_MOVE_UP]){
-    //     dy = -1;
-    // }
-    // if(shared_context()->input_state.time_out_actions_pressed[ACTION_MOVE_DOWN]){
-    //     dy = +1;
-    // }
     if(shared_context()->input_state.time_out_actions_pressed[ACTION_MOVE_LEFT]){
         slot--;
         if(slot >= 0 && slot  < MAX_INVENTORY_SLOTS) {
@@ -208,21 +202,17 @@ int inventory_update(Inventory *self, GamePlay *gameplay){
                 break;
             }
             case ITEM_TYPE_WEAPON:{
-                // check if it's already equiped
-                if(item->equipped){
-                    // unequip
-                    entity_unequip(&gameplay->player,self->selected_slot);
-                }else{
+
+                // if equiped swap
+                if(gameplay->player.has_weapon){
+                    entity_unequip(&gameplay->player,gameplay->player.weapon);
                     entity_equip(&gameplay->player,self->selected_slot);
                 }
                 break;
             }
-            case ITEM_TYPE_ARMOR:{
-                // check if it's already equiped
-                if(item->equipped){
-                    // unequip
-                    entity_unequip(&gameplay->player,self->selected_slot);
-                }else{
+            case ITEM_TYPE_ARMOR:{ // swap?
+                if(gameplay->player.has_armour){
+                    entity_unequip(&gameplay->player,gameplay->player.armour);
                     entity_equip(&gameplay->player,self->selected_slot);
                 }
                 break;

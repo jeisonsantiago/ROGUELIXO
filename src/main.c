@@ -1,8 +1,7 @@
-#include "gameplay.h"
-#include "shared_context.h"
+// #include "gameplay.h"
+// #include "shared_context.h"
 
-#define MAX(a, b) ((a)>(b)? (a) : (b))
-#define MIN(a, b) ((a)<(b)? (a) : (b))
+
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -15,7 +14,7 @@ int main(void)
     // Enable config flags for resizable window and vertical synchro
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
 
-    InitWindow(screenWidth, screenHeight, "raylib [core] example - window letterbox");
+    InitWindow(screenWidth, screenHeight, "raylib [core] window letterbox");
     SetWindowMinSize(1280, 720);
     SetExitKey(0);
 
@@ -36,15 +35,10 @@ int main(void)
     //--------------------------------------------------------------------------------------
     // Map map;
 
-    asset_manager_init(&shared_context()->asset_manager);
-    asset_manager_load_all(&shared_context()->asset_manager);
 
     // game logic
     // map_init(&map);
 
-    GamePlay gameplay;
-    gameplay_init(&gameplay);
-    gameplay.screen = SCREEN_MENU;
 
     // Main game loop
     while (!WindowShouldClose())        // Detect window close button or ESC key
@@ -63,23 +57,23 @@ int main(void)
 
         float delta_time = GetFrameTime();
 
-        // loop over actions
-        for (int i = 0; i < ACTION_COUNT; ++i) {
-            // look over the key related to this index
-            KeyboardKey bound_key = shared_context()->input_mapper.key_bindins[i];
+        // // loop over actions
+        // for (int i = 0; i < ACTION_COUNT; ++i) {
+        //     // look over the key related to this index
+        //     KeyboardKey bound_key = shared_context()->input_mapper.key_bindins[i];
 
-            // SDL_Log("raw: %i",raw_keyboard[i]);
-            // if key is held down set actopm
-            shared_context()->input_state.time_out_actions_down[i] = IsKeyDown(bound_key);
-            shared_context()->input_state.time_out_actions_pressed[i] = IsKeyPressed(bound_key);
-        }
+        //     // SDL_Log("raw: %i",raw_keyboard[i]);
+        //     // if key is held down set actopm
+        //     shared_context()->input_state.time_out_actions_down[i] = IsKeyDown(bound_key);
+        //     shared_context()->input_state.time_out_actions_pressed[i] = IsKeyPressed(bound_key);
+        // }
 
-        if(IsKeyPressed(KEY_SPACE)){
-            gameplay_init(&gameplay);
-        }
+        // if(IsKeyPressed(KEY_SPACE)){
+        //     gameplay_init(&gameplay);
+        // }
 
         // update
-        gameplay_update(&gameplay,delta_time);
+        // gameplay_update(&gameplay,delta_time);
 
 
         //----------------------------------------------------------------------------------
@@ -106,7 +100,7 @@ int main(void)
                 //             BLUE);
                 // TraceLog(LOG_INFO,"%i %i %i %i",room->x,room->y,room->w,room->h);
             // }
-        gameplay_render(&gameplay,delta_time);
+        // gameplay_render(&gameplay,delta_time);
 
         // for (int x = 0; x < MAP_WIDTH; ++x) {
         //     for (int y = 0; y < MAP_HEIGHT; ++y) {

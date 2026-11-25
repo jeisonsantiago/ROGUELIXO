@@ -19,14 +19,7 @@
 #define STR_LENGHT 30
 #define STR_LENGHT_MESSAGE 2024
 
-
-static int directions[4][2] = {
-    { 1,  0 },
-    {-1,  0 },
-    { 0,  1 },
-    { 0, -1 }
-};
-
-static const int UNREACHABLE = 1 << 30;
+#define MAX(a, b) ((a)>(b)? (a) : (b))
+#define MIN(a, b) ((a)<(b)? (a) : (b))
 
 #endif // PCH_H

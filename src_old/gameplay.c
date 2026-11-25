@@ -322,6 +322,8 @@ void gameplay_update(GamePlay *self, float delta_time){
 
         Entity *target = monster_at(self, self->player.x + dx, self->player.y + dy);
 
+
+
         if(target && self->player.state == STATE_IDLE){
 
             // check if has weapon equiped
@@ -476,7 +478,7 @@ void gameplay_on_enter_stairs(GamePlay *self)
             self->previous_dungeon_depth = self->current_dungeon_depth;
 
             self->current_dungeon_depth++;
-            TraceLog(LOG_INFO,"stairs down:%i",self->current_dungeon_depth);
+            // TraceLog(LOG_INFO,"stairs down:%i",self->current_dungeon_depth);
             Dungeon *d =gameplay_current_dungeon(self);
             d->stairs_up_active = false;
         }
@@ -488,7 +490,7 @@ void gameplay_on_enter_stairs(GamePlay *self)
             self->previous_dungeon_depth = self->current_dungeon_depth;
 
             self->current_dungeon_depth--;
-            TraceLog(LOG_INFO,"stairs up:%i",self->current_dungeon_depth);
+            // TraceLog(LOG_INFO,"stairs up:%i",self->current_dungeon_depth);
         }
 
         TraceLog(LOG_INFO,"--");

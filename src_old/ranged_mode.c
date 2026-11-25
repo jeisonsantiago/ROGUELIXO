@@ -10,6 +10,8 @@ bool ranged_mode_update(GamePlay *gameplay){
     RangedMode *ranged_mode = &gameplay->ranged_mode;
     Entity *player = &gameplay->player;
 
+    if(player->state == STATE_ATTACKING) return false;
+
     // in ranged mode you can't move!
     if(gameplay->ranged_mode.enabled){
         if(shared_context()->input_state.time_out_actions_pressed[ACTION_MOVE_UP]){
@@ -39,7 +41,9 @@ bool ranged_mode_update(GamePlay *gameplay){
         if(shared_context()->input_state.time_out_actions_pressed[ACTION_USE]){
 
             // check if is ranged weapon?!?!?!
-            if(player->has_weapon && player->weapon.type == ITEM_TYPE_WEAPON && player->weapon.data.weapon.type == WEAPON_RANGED){
+            Item *item = &player->inventory.inventory[player->weapon].item;
+
+            if(player->has_weapon && item->type == ITEM_TYPE_WEAPON && item->data.weapon.type == WEAPON_RANGED){
                 TraceLog(LOG_INFO,"ATTACK RANGED!");
 
                 if(map_is_visible(&dungeon->map,monster->x, monster->y)){

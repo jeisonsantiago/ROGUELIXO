@@ -28,8 +28,11 @@ void entity_init(Entity *self, EntityType type){
     self->strength_bonus = 0;
     self->has_armour = false;
     self->has_weapon = false;
-    self->weapon = (Item){.type = ITEM_TYPE_UNDEFINED}; // empty
-    self->armour = (Item){.type = ITEM_TYPE_UNDEFINED}; // empty
+    // self->weapon = (Item){.type = ITEM_TYPE_UNDEFINED}; // empty
+    // self->armour = (Item){.type = ITEM_TYPE_UNDEFINED}; // empty
+    self->weapon = -1;
+    self->armour = -1;
+
     self->can_move = true;
 
     inventory_init(&self->inventory);
@@ -164,7 +167,8 @@ void entity_equip(Entity *self, int slot)
         // set inventory to equipped and copy to entity
         self->has_weapon = true;
         item->equipped = true;
-        self->weapon = *item; // just copy...no fidling with pointers please
+        // self->weapon = *item; // just copy...no fidling with pointers please
+        self->weapon = slot;
         TraceLog(LOG_INFO,"%s equiped", self->name);
         break;
     }
@@ -172,7 +176,8 @@ void entity_equip(Entity *self, int slot)
         // set inventory to equipped and copy to entity
         self->has_armour = true;
         item->equipped = true;
-        self->weapon = *item; // just copy...no fidling with pointers please
+        // self->weapon = *item; // just copy...no fidling with pointers please
+        self->armour = slot; // just copy...no fidling with pointers please
         TraceLog(LOG_INFO,"%s equiped", self->name);
         break;
     }
@@ -191,18 +196,19 @@ void entity_unequip(Entity *self, int slot)
     case ITEM_TYPE_WEAPON:{
         // set inventory to equipped and copy to entity
         item->equipped = false;
-        self->weapon = (Item){0};
+        // self->weapon = (Item){0};
+        self->weapon = -1;
         TraceLog(LOG_INFO,"%s unequiped", self->name);
         break;
     }
     case ITEM_TYPE_ARMOR:{
         item->equipped = false;
-        self->weapon = (Item){0};
+        // self->weapon = (Item){0};
+        self->armour = -1;
         TraceLog(LOG_INFO,"%s unequiped", self->name);
         break;
     }
-    default:
-        break;
+    default:break;
     }
 }
 
@@ -212,12 +218,14 @@ void entity_update(Entity *self, float delta_time)
         self->animation_sin_wave = 0.0f;
     }
 
+    Item *item_weapon = (self->has_weapon)?&self->inventory.inventory[self->weapon].item:NULL;
+    Item *item_armor = (self->has_armour)?&self->inventory.inventory[self->armour].item:NULL;;
+
     // compute stats (weapons, defence etc)
-    self->damage = BASE_DAMAGE + self->strength_bonus + ((self->has_weapon) ? self->weapon.data.weapon.amount:0);
-    self->defence = BASE_DEFENSE + ((self->has_armour) ? self->armour.data.armor.amount:0);
+    self->damage = BASE_DAMAGE + self->strength_bonus + ((self->has_weapon) ? item_weapon->data.weapon.amount:0);
+    self->defence = BASE_DEFENSE + ((self->has_armour) ? item_armor->data.armor.amount:0);
 
     if(self->state != STATE_ATTACKING) return;
-
 
     self->timer_attacking_counter -= delta_time;
 
@@ -246,7 +254,6 @@ void entity_update(Entity *self, float delta_time)
 }
 
 bool entity_try_move(Entity *self,int dx, int dy, const Map *map){
-
 
     if(!self->can_move) return false;
 
@@ -313,9 +320,13 @@ void entity_set_sprite(Entity *self, int sprite_index)
 }
 
 bool entity_has_melee_equiped(Entity *self){
-    return (self->has_weapon && self->weapon.data.weapon.type == WEAPON_MELEE);
+    Item *item_weapon = (self->has_weapon)?&self->inventory.inventory[self->weapon].item:NULL;
+
+    return (self->has_weapon && item_weapon->data.weapon.type == WEAPON_MELEE);
 }
 
 bool entity_has_ranged_equiped(Entity *self){
-    return (self->has_weapon && self->weapon.data.weapon.type == WEAPON_RANGED);
+    Item *item_armor = (self->has_armour)?&self->inventory.inventory[self->armour].item:NULL;
+
+    return (self->has_weapon && item_armor->data.weapon.type == WEAPON_RANGED);
 }
