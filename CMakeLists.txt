@@ -16,7 +16,9 @@ add_executable("${CMAKE_PROJECT_NAME}" src/main.c
     src/game.h src/game.c
     src/game/entity.h src/game/entity.c
     src/core/input.h src/core/input.c
-    src/core/time.h src/core/time.c)
+    src/core/time.h src/core/time.c
+    src/core/move.h
+)
 # add_executable("${CMAKE_PROJECT_NAME}" src/main.c
 #     src/pch.h
 #     src/map.h src/map.c

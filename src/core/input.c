@@ -29,6 +29,7 @@ void input_update(Vector2 virtual_mouse) {
             pressed[a] = true;   /* stays set until a fixed step uses it */
     }
 }
+
 void input_end_step(void) {
     for (int a = 0; a < ACTION_COUNT; a++) pressed[a] = false;
 }
